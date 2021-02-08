@@ -27,6 +27,7 @@ import { CustomBlock } from './nodes/customBlock';
 
 import { ToDOMAdaptor } from '@t/convertor';
 import { LinkAttributes } from '@t/editor';
+import { Widget } from '@/markdown/nodes/widget';
 
 export function createSpecs(toDOMAdaptor: ToDOMAdaptor, linkAttributes: LinkAttributes) {
   return new SpecManager([
@@ -53,5 +54,6 @@ export function createSpecs(toDOMAdaptor: ToDOMAdaptor, linkAttributes: LinkAttr
     new Link(toDOMAdaptor, linkAttributes),
     new Code(toDOMAdaptor),
     new CustomBlock(),
+    new Widget(),
   ]);
 }
