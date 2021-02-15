@@ -26,7 +26,9 @@ import { LinkAttributes, WidgetStyle } from '@t/editor';
 import { changePastedHTML, changePastedSlice } from '@/wysiwyg/clipboard/paste';
 import { pasteToTable } from '@/wysiwyg/clipboard/pasteToTable';
 import { dropImage } from '@/plugins/dropImage';
-import { extract, widgetRules, widgetView } from '@/widget/widgetNode';
+import { addWidget } from '@/plugins/popupWidget';
+import { createNodesWithWidget } from '@/widget/rules';
+import { widgetNodeView } from '@/widget/widgetNode';
 
 const CONTENTS_CLASS_NAME = 'tui-editor-contents';
 
@@ -88,6 +90,7 @@ export default class WysiwygEditor extends EditorBase {
         tableContextMenuPlugin(this.eventEmitter),
         taskPlugin(),
         dropImage(this.context, 'wysiwyg'),
+        addWidget(),
       ],
       ...addedStates,
     });
@@ -105,7 +108,7 @@ export default class WysiwygEditor extends EditorBase {
         customBlock(node, view, getPos) {
           return new CustomBlockView(node, view, getPos, toDOMAdaptor);
         },
-        widget: widgetView,
+        widget: widgetNodeView,
       },
       transformPastedHTML: changePastedHTML,
       transformPasted: (slice: Slice) => changePastedSlice(slice, this.schema),
@@ -170,7 +173,7 @@ export default class WysiwygEditor extends EditorBase {
 
   replaceWithWidget(from: number, to: number, content: string) {
     const { tr, schema } = this.view.state;
-    const nodes = extract(content, schema, widgetRules);
+    const nodes = createNodesWithWidget(content, schema);
 
     this.view.dispatch(tr.replaceWith(from, to, nodes));
   }
