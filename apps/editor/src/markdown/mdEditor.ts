@@ -39,7 +39,7 @@ import { CustomBlock } from './marks/customBlock';
 import { getEditorToMdPos, getMdToEditorPos } from './helper/pos';
 import { smartTask } from './plugins/smartTask';
 import { widgetPlugin } from '@/plugins/widget';
-import { extract, getWidgetContent, Widget, widgetRules, widgetView } from '@/widget/widgetNode';
+import { extract, Widget, widgetRules, widgetView } from '@/widget/widgetNode';
 
 interface WindowWithClipboard extends Window {
   clipboardData?: DataTransfer | null;
@@ -168,7 +168,7 @@ export default class MdEditor extends EditorBase {
 
         this.view.updateState(state);
       },
-      clipboardTextSerializer: (slice) => this.getChanged(slice, true),
+      clipboardTextSerializer: (slice) => this.getChanged(slice),
       handleKeyDown: (_, ev) => {
         if ((ev.metaKey || ev.ctrlKey) && ev.key.toUpperCase() === 'V') {
           this.clipboard.focus();
@@ -215,7 +215,7 @@ export default class MdEditor extends EditorBase {
     return resolvedPos || [step.from, step.to];
   }
 
-  private getChanged(slice: Slice, trailing = false) {
+  private getChanged(slice: Slice) {
     let changed = '';
     const from = 0;
     const to = slice.content.size;
@@ -227,10 +227,6 @@ export default class MdEditor extends EditorBase {
         changed += '\n';
       }
     });
-
-    if (trailing) {
-      changed = getWidgetContent(changed);
-    }
 
     return nbspToSpace(changed);
   }

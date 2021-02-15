@@ -182,7 +182,7 @@ export const toMdConvertors: ToMdConvertorMap = {
 
   widget({ node }) {
     return {
-      text: getWidgetContent((node as ProsemirrorNode).textContent),
+      text: (node as ProsemirrorNode).textContent,
     };
   },
 
