@@ -122,5 +122,18 @@ describe('WysiwygEditor', () => {
         <p>new barar</p>
       `);
     });
+
+    it('addWidget API', () => {
+      const ul = document.createElement('ul');
+
+      ul.innerHTML = `
+        <li>Ryu</li>
+        <li>Lee</li>
+      `;
+
+      wwe.addWidget(ul, 'top');
+
+      expect(document.body).toContainElement(ul);
+    });
   });
 });
