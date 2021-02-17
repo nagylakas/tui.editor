@@ -51,6 +51,7 @@ export default class MdEditor extends EditorBase {
   constructor(toastMark: ToastMark, eventEmitter: Emitter) {
     super(eventEmitter);
 
+    this.editorType = 'markdown';
     this.toastMark = toastMark;
     this.specs = this.createSpecs();
     this.schema = this.createSchema();
@@ -62,6 +63,7 @@ export default class MdEditor extends EditorBase {
     this.createClipboard();
     this.eventEmitter.listen('changePreviewTabWrite', () => this.toggleActive(true));
     this.eventEmitter.listen('changePreviewTabPreview', () => this.toggleActive(false));
+    this.initEvent();
   }
 
   private toggleActive(active: boolean) {
@@ -175,18 +177,24 @@ export default class MdEditor extends EditorBase {
         const { state } = this.view.state.applyTransaction(tr);
 
         this.view.updateState(state);
+        this.emitChangeEvent(tr);
       },
       clipboardTextSerializer: (slice) => this.getChanged(slice),
       handleKeyDown: (_, ev) => {
         if ((ev.metaKey || ev.ctrlKey) && ev.key.toUpperCase() === 'V') {
           this.clipboard.focus();
         }
+        this.eventEmitter.emit('keydown', this.editorType, ev);
         return false;
       },
       handleDOMEvents: {
         scroll: () => {
-          this.eventEmitter.emit('scroll', { source: 'editor' });
+          this.eventEmitter.emit('scroll', 'editor');
           return true;
+        },
+        keyup: (_, ev: KeyboardEvent) => {
+          this.eventEmitter.emit('keyup', this.editorType, ev);
+          return false;
         },
       },
     });
@@ -206,7 +214,7 @@ export default class MdEditor extends EditorBase {
           const [startPos, endPos] = getEditorToMdPos(doc, from, to);
           const editResult = this.toastMark.editMarkdown(startPos, endPos, changed);
 
-          this.eventEmitter.emit('contentChangedFromMarkdown', editResult);
+          this.eventEmitter.emit('updatePreview', editResult);
 
           tr.setMeta('editResult', editResult);
         }

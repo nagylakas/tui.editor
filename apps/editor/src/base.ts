@@ -1,7 +1,8 @@
 import { Node, Schema } from 'prosemirror-model';
-import { Plugin } from 'prosemirror-state';
+import { Plugin, Transaction } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
 import css from 'tui-code-snippet/domUtil/css';
+import { EditorType } from '@t/editor';
 import { Emitter } from '@t/event';
 import { Context, EditorAllCommandMap } from '@t/spec';
 import SpecManager from './spec/specManager';
@@ -13,6 +14,8 @@ export interface StateOptions {
 
 export default abstract class EditorBase {
   el: HTMLElement;
+
+  editorType!: EditorType;
 
   eventEmitter: Emitter;
 
@@ -48,6 +51,20 @@ export default abstract class EditorBase {
 
   abstract createView(): EditorView;
 
+  protected initEvent() {
+    const { eventEmitter, view, editorType } = this;
+
+    view.dom.addEventListener('focus', () => eventEmitter.emit('focus', editorType));
+    view.dom.addEventListener('blur', () => eventEmitter.emit('blur', editorType));
+  }
+
+  protected emitChangeEvent(tr: Transaction) {
+    this.eventEmitter.emit('caretChange', this.editorType);
+    if (tr.docChanged) {
+      this.eventEmitter.emit('change', this.editorType);
+    }
+  }
+
   createSchema() {
     return new Schema({
       nodes: this.specs.nodes,
@@ -65,11 +82,12 @@ export default abstract class EditorBase {
 
   focus() {
     this.view.focus();
+    this.eventEmitter.emit('focus', this.editorType);
   }
 
   blur() {
     (this.view.dom as HTMLElement).blur();
-    this.eventEmitter.emit('blur');
+    this.eventEmitter.emit('blur', this.editorType);
   }
 
   destroy() {

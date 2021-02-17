@@ -18,7 +18,7 @@ import { dropImage } from '@/plugins/dropImage';
 import { tableSelection } from './plugins/tableSelection';
 import { tableContextMenu } from './plugins/tableContextMenu';
 import { task } from './plugins/task';
-import { toolbarActivity } from './plugins/toolbarActivity';
+import { toolbarState } from './plugins/toolbarState';
 
 import { CustomBlockView } from './nodeview/customBlockView';
 import { changePastedHTML, changePastedSlice } from './clipboard/paste';
@@ -43,6 +43,7 @@ export default class WysiwygEditor extends EditorBase {
   constructor(eventEmitter: Emitter, toDOMAdaptor: ToDOMAdaptor, linkAttributes = {}) {
     super(eventEmitter);
 
+    this.editorType = 'wysiwyg';
     this.toDOMAdaptor = toDOMAdaptor;
     this.linkAttributes = linkAttributes;
     this.specs = this.createSpecs();
@@ -52,6 +53,7 @@ export default class WysiwygEditor extends EditorBase {
     this.view = this.createView();
     this.commands = this.createCommands();
     this.specs.setContext({ ...this.context, view: this.view });
+    this.initEvent();
   }
 
   createSpecs() {
@@ -94,7 +96,7 @@ export default class WysiwygEditor extends EditorBase {
         tableContextMenu(this.eventEmitter),
         task(),
         dropImage(this.context, 'wysiwyg'),
-        toolbarActivity(this.eventEmitter),
+        toolbarState(this.eventEmitter),
       ],
       ...addedStates,
     });
@@ -113,9 +115,19 @@ export default class WysiwygEditor extends EditorBase {
           return new CustomBlockView(node, view, getPos, toDOMAdaptor);
         },
       },
+      dispatchTransaction: (tr) => {
+        const { state } = this.view.state.applyTransaction(tr);
+
+        this.view.updateState(state);
+        this.emitChangeEvent(tr);
+      },
       transformPastedHTML: changePastedHTML,
       transformPasted: (slice: Slice) => changePastedSlice(slice, this.schema),
       handlePaste: (view: EditorView, _: ClipboardEvent, slice: Slice) => pasteToTable(view, slice),
+      handleKeyDown: (_, ev) => {
+        this.eventEmitter.emit('keydown', this.editorType, ev);
+        return false;
+      },
       handleDOMEvents: {
         paste: (_, ev) => {
           const clipboardData =
@@ -134,6 +146,10 @@ export default class WysiwygEditor extends EditorBase {
             }
           }
           return true;
+        },
+        keyup: (_, ev: KeyboardEvent) => {
+          this.eventEmitter.emit('keyup', this.editorType, ev);
+          return false;
         },
       },
     });
