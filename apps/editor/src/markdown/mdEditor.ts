@@ -1,6 +1,6 @@
 import { EditorState, Transaction } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
-import { DOMParser, Fragment, Schema, Slice } from 'prosemirror-model';
+import { Fragment, Schema, Slice } from 'prosemirror-model';
 import { Step } from 'prosemirror-transform';
 import { keymap } from 'prosemirror-keymap';
 import { baseKeymap } from 'prosemirror-commands';
@@ -150,7 +150,7 @@ export default class MdEditor extends EditorBase {
     const { undo, redo } = getDefaultCommands();
 
     return EditorState.create({
-      doc: DOMParser.fromSchema(this.schema).parse(this.el),
+      schema: this.schema,
       plugins: [
         ...this.keymaps,
         keymap({
