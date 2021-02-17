@@ -124,7 +124,7 @@ describe('WysiwygEditor', () => {
     });
   });
 
-  it(`should emit 'cursorActivity' event when changing cursor`, () => {
+  it(`should emit 'changeToolbarState' event when changing cursor`, () => {
     setContent(oneLineTrim`
       <p>foo</p>
       <p>bar</p>
@@ -132,7 +132,7 @@ describe('WysiwygEditor', () => {
 
     const spy = jest.fn();
 
-    em.listen('cursorActivity', spy);
+    em.listen('changeToolbarState', spy);
 
     wwe.setSelection(3, 3);
 
